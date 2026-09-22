@@ -14,7 +14,7 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
       turn. This is where you learn about context windows and truncation —
       worth deliberately overflowing the window once to see what happens.
 
-- [ ] **3. System prompts / persona control.** Small but distinct step:
+- [x] **3. System prompts / persona control.** Small but distinct step:
       separate "identity and instructions" from "conversation," and see how
       much it steers behavior.
 

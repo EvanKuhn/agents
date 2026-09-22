@@ -17,16 +17,21 @@ from rich.live import Live
 from rich.markdown import Markdown
 
 from . import config
+from .personas import initial_messages
 from .ui import console, get_agent_theme
 
 
 def main() -> None:
+    # Initialize client and other fields
     client = config.get_client()
-    messages = []
     think = config.supports_thinking(client)
     theme = get_agent_theme(config.THEME)
+    messages = initial_messages(config.PERSONA)
 
-    console.print(f"Chatting with {config.MODEL} - type 'exit' or 'quit' to stop.\n")
+    # Print header
+    console.print(
+        f"Chatting with {config.MODEL} (persona: {config.PERSONA}) - type 'exit' or 'quit' to stop.\n"
+    )
 
     while True:
         # Get user prompt
