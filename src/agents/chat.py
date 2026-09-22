@@ -17,20 +17,23 @@ from rich.live import Live
 from rich.markdown import Markdown
 
 from . import config
-from .ui import ASSISTANT_STYLE, USER_STYLE, console
+from .ui import console, get_agent_theme
 
 
 def main() -> None:
     client = config.get_client()
     messages = []
     think = config.supports_thinking(client)
+    theme = get_agent_theme(config.THEME)
 
     console.print(f"Chatting with {config.MODEL} - type 'exit' or 'quit' to stop.\n")
 
     while True:
         # Get user prompt
         try:
-            user_input = console.input(f"[{USER_STYLE}]User:[/{USER_STYLE}] ").strip()
+            user_input = console.input(
+                f"[{theme.USER_PROMPT_COLOR}]User:[/{theme.USER_PROMPT_COLOR}] "
+            ).strip()
         except (EOFError, KeyboardInterrupt):
             console.print()
             break
@@ -45,7 +48,7 @@ def main() -> None:
         messages.append({"role": "user", "content": user_input})
 
         # Print assistant output
-        console.print(f"\n[{ASSISTANT_STYLE}]Assistant:[/{ASSISTANT_STYLE}]")
+        console.print(f"\n[{theme.AGENT_PROMPT_COLOR}]Assistant:[/{theme.AGENT_PROMPT_COLOR}]")
         stream = client.chat(model=config.MODEL, messages=messages, stream=True, think=think)
 
         # Stream response to console, re-rendering as markdown as it grows,
@@ -53,7 +56,7 @@ def main() -> None:
         assistant_response = ""
         token_count = 0
         start = time.monotonic()
-        with Live(console=console, refresh_per_second=10, vertical_overflow="visible") as live:
+        with Live(console=console, refresh_per_second=10, vertical_overflow="ellipsis") as live:
             for chunk in stream:
                 message = chunk["message"]
                 content = message["content"]
@@ -78,7 +81,8 @@ def main() -> None:
 
                 elapsed = time.monotonic() - start
                 status = f"{elapsed:.0f}s - {token_count} tokens - {status_word}"
-                live.update(Group(Markdown(assistant_response), f"[dim]{status}[/dim]"))
+                status_style = f"{theme.STATUS_BAR_FG_COLOR} on {theme.STATUS_BAR_BG_COLOR}"
+                live.update(Group(Markdown(assistant_response), f"[{status_style}]{status}[/{status_style}]"))
         console.print()
 
         # Save response to message history

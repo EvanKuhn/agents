@@ -8,6 +8,7 @@ import ollama
 
 MODEL = os.environ.get("AGENTS_MODEL", "llama3.1")
 HOST = os.environ.get("AGENTS_HOST", "http://localhost:11434")
+THEME = os.environ.get("AGENTS_THEME", "dark")
 
 
 def get_client() -> ollama.Client:
