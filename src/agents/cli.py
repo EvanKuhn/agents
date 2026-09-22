@@ -3,11 +3,11 @@
 
 import argparse
 
-from . import simple, working_memory
+from . import chat, simple
 
 AGENTS = {
     "simple": simple.main,
-    "chat": working_memory.main,
+    "chat": chat.main,
 }
 
 
