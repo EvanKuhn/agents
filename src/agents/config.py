@@ -13,7 +13,7 @@ from .personas import DEFAULT_PERSONA
 # - llama3.1      : Fast and lightweight. Has trouble with tools.
 # - qwen3         : Good for tool calling. Runs slower.
 
-MODEL = os.environ.get("AGENTS_MODEL", "llama3.1")  # "deepseek-r1")
+MODEL = os.environ.get("AGENTS_MODEL", "qwen3")
 HOST = os.environ.get("AGENTS_HOST", "http://localhost:11434")
 THEME = os.environ.get("AGENTS_THEME", "dark")
 PERSONA = os.environ.get("AGENTS_PERSONA", DEFAULT_PERSONA)

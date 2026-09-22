@@ -1,5 +1,5 @@
-# Working memory agent. Like scripts/helloworld.py, but wraps the call in a
-# REPL loop and keeps a running list of messages, resending the full conversation history
+# Working memory agent. Wraps the LLM call in a REPL loop and keeps a
+# running list of messages, resending the full conversation history
 # to the model on every turn. This is what gives the agent "memory" of
 # what's been said so far - the model itself is stateless, so without
 # resending history it would forget every prior turn.

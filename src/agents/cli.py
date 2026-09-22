@@ -1,4 +1,4 @@
-# CLI entry point. `agents` parses options into config, then starts the chat
+# CLI entry point. `agent` parses options into config, then starts the chat
 # agent.
 
 import argparse
@@ -8,7 +8,7 @@ from .personas import list_personas
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="agents", description="Chat with a local AI agent.")
+    parser = argparse.ArgumentParser(prog="agent", description="Chat with a local AI agent.")
     parser.add_argument(
         "--theme",
         choices=["light", "dark"],

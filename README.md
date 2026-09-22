@@ -5,14 +5,14 @@ A simple AI agent implemented with Python, built up step by step (see `PLAN.md`)
 ## Usage
 
 ```
-uv run agents
+uv run agent
 ```
 
 This starts a chat in your terminal. The agent keeps the full conversation history, so the model
 remembers earlier turns, and it can use tools.
 
 Set `AGENTS_MODEL` / `AGENTS_HOST` to point at a different model or Ollama host (defaults:
-`llama3.1` at `http://localhost:11434`).
+`qwen3` at `http://localhost:11434`).
 
 Set `AGENTS_THEME=light|dark` (default `dark`), or pass `--theme=light|dark` on the command line,
 to switch prompt and status bar colors for light- or dark-background terminals.
