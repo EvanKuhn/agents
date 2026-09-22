@@ -12,6 +12,7 @@ class DarkTheme:
     AGENT_PROMPT_COLOR = "bold yellow"
     STATUS_BAR_FG_COLOR = "grey70"
     STATUS_BAR_BG_COLOR = "grey11"
+    TOOL_CALL_COLOR = "green"
 
 
 class LightTheme:
@@ -20,6 +21,7 @@ class LightTheme:
     AGENT_PROMPT_COLOR = "bold magenta"
     STATUS_BAR_FG_COLOR = "grey30"
     STATUS_BAR_BG_COLOR = "grey89"
+    TOOL_CALL_COLOR = "dark_green"
 
 
 # Theme name (as passed via --theme / AGENTS_THEME) -> theme class

@@ -4,6 +4,8 @@ An incremental plan for building up a local Ollama-based agent, from a raw API
 call to multi-agent orchestration. Recommended build order: 1→2→3→4→5→6→7→13,
 then 8→9→10 for memory, then 11→12→14 as stretch goals.
 
+## Steps
+
 - [x] **1. Hello world / raw API call.** Send a single prompt to Ollama's
       `/api/generate` or `/api/chat` endpoint and print the response. Goal:
       understand the wire format, streaming vs. non-streaming, and basic
@@ -18,7 +20,7 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
       separate "identity and instructions" from "conversation," and see how
       much it steers behavior.
 
-- [ ] **4. Basic tool use.** Define a couple of functions (e.g., calculator,
+- [x] **4. Basic tool use.** Define a couple of functions (e.g., calculator,
       current time, file read), describe them to the model, parse its request
       to call one, execute it, and feed the result back in. Ollama's
       tool-calling support varies by model, so this step doubles as a lesson
@@ -70,3 +72,7 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
 - [ ] **14. Simple UI or API wrapper.** Wrap the whole thing in a minimal CLI
        REPL or a FastAPI server — useful once the internals are stable and
        you want to actually use the thing.
+
+## Misc
+
+- Temperature setting

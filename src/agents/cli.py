@@ -27,8 +27,15 @@ def main() -> None:
         choices=list_personas(),
         help="system prompt to use, from src/agents/personas/ (default: $AGENTS_PERSONA or 'none', i.e. no system prompt)",
     )
+    parser.add_argument(
+        "--no-tools",
+        action="store_true",
+        help="don't offer tools (calculator, clock, file reading) to the model",
+    )
     args = parser.parse_args()
 
+    if args.no_tools:
+        config.TOOLS_ENABLED = False
     if args.theme:
         config.THEME = args.theme
     if args.persona:

@@ -2,7 +2,7 @@
 # streams the response back.
 
 from . import config
-from .personas import initial_messages
+from .prompts import initial_messages
 from .ui import console, get_agent_theme
 
 QUERY = "Why is the sky blue?"
@@ -15,7 +15,8 @@ def main() -> None:
     console.print(f"[{theme.USER_PROMPT_COLOR}]User:[/{theme.USER_PROMPT_COLOR}] {QUERY}")
     stream = client.chat(
         model=config.MODEL,
-        messages=initial_messages(config.PERSONA) + [{"role": "user", "content": QUERY}],
+        messages=initial_messages(config.PERSONA, tools_enabled=False)
+        + [{"role": "user", "content": QUERY}],
         stream=True,
     )
 
