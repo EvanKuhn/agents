@@ -12,3 +12,7 @@ HOST = os.environ.get("AGENTS_HOST", "http://localhost:11434")
 
 def get_client() -> ollama.Client:
     return ollama.Client(host=HOST)
+
+
+def supports_thinking(client: ollama.Client) -> bool:
+    return "thinking" in (client.show(MODEL).capabilities or [])
