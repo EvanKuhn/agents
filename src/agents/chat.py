@@ -78,11 +78,13 @@ def main() -> None:
                 else:
                     status_word = "Generating..."
 
-
+                # Assemble status line
                 elapsed = time.monotonic() - start
-                status = f"{elapsed:.0f}s - {token_count} tokens - {status_word}"
+                status_str = f"{elapsed:.0f}s - {token_count} tokens - {status_word}"
                 status_style = f"{theme.STATUS_BAR_FG_COLOR} on {theme.STATUS_BAR_BG_COLOR}"
-                live.update(Group(Markdown(assistant_response), f"[{status_style}]{status}[/{status_style}]"))
+
+                # Update console output
+                live.update(Group(Markdown(assistant_response), f"[{status_style}]{status_str}[/{status_style}]"))
         console.print()
 
         # Save response to message history
