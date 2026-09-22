@@ -1,36 +1,28 @@
-# CLI entry point. `agents <name>` dispatches to one of the agents below -
-# add new agents here as they're built.
+# CLI entry point. `agents` parses options into config, then starts the chat
+# agent.
 
 import argparse
 
-from . import chat, config, simple
+from . import chat, config
 from .personas import list_personas
-
-AGENTS = {
-    "simple": simple.main,
-    "chat": chat.main,
-}
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="agents", description="Run one of the agents in this project."
-    )
-    parser.add_argument("agent", choices=sorted(AGENTS), help="which agent to run")
+    parser = argparse.ArgumentParser(prog="agents", description="Chat with a local AI agent.")
     parser.add_argument(
         "--theme",
         choices=["light", "dark"],
-        help="color theme for prompts and status bar (default: $AGENTS_THEME or 'dark')",
+        help="Color theme for prompts and status bar",
     )
     parser.add_argument(
         "--persona",
         choices=list_personas(),
-        help="system prompt to use, from src/agents/personas/ (default: $AGENTS_PERSONA or 'none', i.e. no system prompt)",
+        help="Agent personality, or 'none' for no personality",
     )
     parser.add_argument(
         "--no-tools",
         action="store_true",
-        help="don't offer tools (calculator, clock, file reading) to the model",
+        help="Don't offer tools (calculator, clock, file reading) to the model",
     )
     args = parser.parse_args()
 
@@ -43,4 +35,4 @@ def main() -> None:
     if config.PERSONA not in list_personas():
         parser.error(f"unknown persona {config.PERSONA!r} (choose from {', '.join(list_personas())})")
 
-    AGENTS[args.agent]()
+    chat.main()
