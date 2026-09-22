@@ -10,6 +10,9 @@
 # text) to see what happens when the conversation outgrows the model's
 # context window.
 
+from rich.live import Live
+from rich.markdown import Markdown
+
 from . import config
 from .ui import ASSISTANT_STYLE, USER_STYLE, console
 
@@ -38,16 +41,16 @@ def main() -> None:
         messages.append({"role": "user", "content": user_input})
 
         # Print assistant output
-        console.print(f"\n[{ASSISTANT_STYLE}]Assistant:[/{ASSISTANT_STYLE}] ", end="")
+        console.print(f"\n[{ASSISTANT_STYLE}]Assistant:[/{ASSISTANT_STYLE}]")
         stream = client.chat(model=config.MODEL, messages=messages, stream=True)
 
-        # Stream response to console
+        # Stream response to console, re-rendering as markdown as it grows
         assistant_response = ""
-        for chunk in stream:
-            content = chunk["message"]["content"]
-            console.print(content, end="", markup=False, highlight=False)
-            assistant_response += content
-        console.print("\n")
+        with Live(console=console, refresh_per_second=10) as live:
+            for chunk in stream:
+                assistant_response += chunk["message"]["content"]
+                live.update(Markdown(assistant_response))
+        console.print()
 
         # Save response to message history
         messages.append({"role": "assistant", "content": assistant_response})
