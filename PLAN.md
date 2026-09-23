@@ -73,6 +73,13 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
        REPL or a FastAPI server — useful once the internals are stable and
        you want to actually use the thing.
 
-## Misc
+## More Ideas
 
 - Temperature setting
+- More tools (see TODOs in tools.py)
+- Optionally show thinking, tool calls, API request/response, etc
+- Context management and compaction
+- Refactoring / code cleanup
+
+## Questions
+- What's the difference between Ollama, LM Studio, and OpenRouter?

@@ -184,6 +184,11 @@ def read_file(path: str) -> str:
     return text
 
 
+# TODO: add file_glob() tool for recursive filename searching
+# TODO: add file_grep() tool for searching within a file
+# TODO: add web search and web fetch tools
+
+
 def _resolve_allowed_path(path: str) -> Path:
     """
     Turn a model-supplied path into a real absolute path, and refuse it unless
