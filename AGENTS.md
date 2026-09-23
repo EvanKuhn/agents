@@ -10,6 +10,8 @@ steps and which are done. `journal/` holds the owner's notes on what was learned
 - `./scripts/helloworld.py`: send one prompt to the model and print the reply.
 - Config comes from `AGENTS_MODEL`, `AGENTS_HOST`, `AGENTS_THEME` and `AGENTS_PERSONA`; CLI flags
   override them. The default model is `qwen3`, which needs Ollama running locally.
+- `make format`, `make lint` and `make types`: format, lint and type check, using ruff and ty
+  (configured in `pyproject.toml`).
 
 ## Layout
 
@@ -36,6 +38,8 @@ All code is in `src/agents/`:
 ## Workflow
 
 - Don't commit or push unless asked.
+- After changing Python code, run `make format`, `make lint` and `make types`, and fix what they
+  report rather than silencing it.
 - Test changes by running the agent against a real model, not just by importing the code.
 - Skills live in `.agents/skills/` (`.claude/skills` is a symlink to it): `add-tool` for adding
   a tool, and `journal-entry` for starting a new journal entry.

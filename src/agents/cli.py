@@ -33,6 +33,8 @@ def main() -> None:
     if args.persona:
         config.PERSONA = args.persona
     if config.PERSONA not in list_personas():
-        parser.error(f"unknown persona {config.PERSONA!r} (choose from {', '.join(list_personas())})")
+        parser.error(
+            f"unknown persona {config.PERSONA!r} (choose from {', '.join(list_personas())})"
+        )
 
     chat.main()

@@ -75,12 +75,16 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
 
 ## More Ideas
 
-- Temperature setting
-- More tools (see TODOs in tools.py)
-- Optionally show thinking, tool calls, API request/response, etc
-- Context management and compaction
-- Refactoring / code cleanup
-- Support automated formatting, linting, and type checking (try `ruff` and `ty`)
+- [X] Support automated formatting, linting, and type checking (try `ruff` and `ty`)
+- [X] Add Makefile with useful commands
+- [ ] Temperature setting
+- [ ] More tools (see TODOs in tools.py)
+- [ ] Optionally show thinking, tool calls, API request/response, etc
+- [ ] Context management and compaction
+- [ ] Refactoring / code cleanup
 
 ## Questions
 - What's the difference between Ollama, LM Studio, and OpenRouter?
+  - OpenRouter is for switching between hosted models, typically frontier models.
+  - Ollama is for running local models, targeted at devs. Lightweight.
+  - LM Studio is also for running local models, but more for non-technical people. Nice UI.

@@ -8,6 +8,7 @@ console = Console()
 
 class DarkTheme:
     """Colors for terminals with a dark background"""
+
     USER_PROMPT_COLOR = "bold cyan"
     AGENT_PROMPT_COLOR = "bold yellow"
     STATUS_BAR_FG_COLOR = "grey70"
@@ -17,6 +18,7 @@ class DarkTheme:
 
 class LightTheme:
     """Colors for terminals with a light background"""
+
     USER_PROMPT_COLOR = "bold blue"
     AGENT_PROMPT_COLOR = "bold magenta"
     STATUS_BAR_FG_COLOR = "grey30"

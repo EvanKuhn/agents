@@ -52,7 +52,7 @@ def main() -> None:
             user_input = console.input(
                 f"[{theme.USER_PROMPT_COLOR}]User:[/{theme.USER_PROMPT_COLOR}] "
             ).strip()
-        except (EOFError, KeyboardInterrupt):
+        except EOFError, KeyboardInterrupt:
             console.print()
             break
 
@@ -99,7 +99,9 @@ def stream_reply(
     elapsed time / tokens / state. Returns the reply text and any tool calls
     the model asked for (an empty list if none).
     """
-    stream = client.chat(model=config.MODEL, messages=messages, stream=True, think=think, tools=tools)
+    stream = client.chat(
+        model=config.MODEL, messages=messages, stream=True, think=think, tools=tools
+    )
 
     reply = ""
     tool_calls = []
@@ -154,5 +156,8 @@ def print_tool_call(theme, name: str, arguments: dict, result: str) -> None:
     if len(preview) > 80:
         preview = preview[:77] + "..."
     console.print(
-        f"→ {name}({args}) = {preview}\n", style=theme.TOOL_CALL_COLOR, markup=False, highlight=False
+        f"→ {name}({args}) = {preview}\n",
+        style=theme.TOOL_CALL_COLOR,
+        markup=False,
+        highlight=False,
     )

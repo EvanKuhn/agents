@@ -30,6 +30,17 @@ The agent offers the model tools (a calculator, the current time, and listing/re
 defined in `src/agents/tools.py`. File tools only work inside the directory you start the agent
 from. Pass `--no-tools` to turn tools off.
 
+## Development
+
+Format, lint and type check the code with [ruff](https://docs.astral.sh/ruff/) and
+[ty](https://docs.astral.sh/ty/), both configured in `pyproject.toml`:
+
+```
+make format   # uv run ruff check --select I --fix, then uv run ruff format
+make lint     # uv run ruff check
+make types    # uv run ty check
+```
+
 ## Scripts
 
 - `scripts/helloworld.py`: The hello world of agents. Sends one query to the model and prints the

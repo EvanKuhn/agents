@@ -19,7 +19,7 @@ THEME = os.environ.get("AGENTS_THEME", "dark")
 PERSONA = os.environ.get("AGENTS_PERSONA", DEFAULT_PERSONA)
 
 # Whether to offer tools to the model; turned off with --no-tools
-TOOLS_ENABLED = True
+TOOLS_ENABLED: bool = True
 
 
 def get_client() -> ollama.Client:

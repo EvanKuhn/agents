@@ -11,8 +11,10 @@
 import ast
 import math
 import operator
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 # Directory file tools are limited to: wherever the agent was started from,
 # with symlinks resolved so the containment check compares real locations
@@ -29,7 +31,7 @@ MAX_LIST_ENTRIES = 200
 # expressions like 9**9**9 from hanging.
 MAX_POW_DIGITS = 4000
 
-_BINARY_OPS = {
+_BINARY_OPS: dict[type[ast.operator], Callable[[Any, Any], Any]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
@@ -37,7 +39,10 @@ _BINARY_OPS = {
     ast.FloorDiv: operator.floordiv,
     ast.Mod: operator.mod,
 }
-_UNARY_OPS = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+_UNARY_OPS: dict[type[ast.unaryop], Callable[[Any], Any]] = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
 
 
 def calculate(expression: str) -> str:
@@ -46,7 +51,7 @@ def calculate(expression: str) -> str:
     math instead of computing it yourself.
 
     Args:
-        expression: Arithmetic using numbers, parentheses and + - * / // % **, e.g. "(3 + 4) * 2**10"
+        expression: Arithmetic with numbers, parentheses and + - * / // % **, e.g. "(3 + 4) * 2**10"
 
     Returns:
         The result as a string, e.g. "7168".
@@ -79,7 +84,12 @@ def _evaluate(node: ast.AST) -> int | float:
         ZeroDivisionError: The expression divides by zero.
         OverflowError: A float result is too large.
     """
-    if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+    # bool is a subclass of int, so exclude it explicitly: True + 1 isn't arithmetic
+    if (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, int | float)
+        and not isinstance(node.value, bool)
+    ):
         return node.value
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Pow):
         return _power(_evaluate(node.left), _evaluate(node.right))
