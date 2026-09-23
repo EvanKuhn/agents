@@ -1,2 +1,9 @@
 __pycache__/
 *.pyc
+
+# Editor swap files
+*.swp
+
+# Personal, uncommitted coding agent settings
+CLAUDE.local.md
+.claude/settings.local.json

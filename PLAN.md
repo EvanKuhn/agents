@@ -80,6 +80,7 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
 - Optionally show thinking, tool calls, API request/response, etc
 - Context management and compaction
 - Refactoring / code cleanup
+- Support automated formatting, linting, and type checking (try `ruff` and `ty`)
 
 ## Questions
 - What's the difference between Ollama, LM Studio, and OpenRouter?
