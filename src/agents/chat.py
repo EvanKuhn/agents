@@ -48,8 +48,6 @@ def main() -> None:
     user_prompt_str = f"[{theme.USER_PROMPT_COLOR}]User:[/{theme.USER_PROMPT_COLOR}] "
     agent_prompt_str = f"\n[{theme.AGENT_PROMPT_COLOR}]Assistant:[/{theme.AGENT_PROMPT_COLOR}]"
 
-    # TODO: optionally print system prompt (use --show-system-prompt)
-
     # Print header
     console.print(
         f"Chatting with {config.MODEL} (persona: {config.PERSONA}) - type 'exit' or 'quit' to stop."
@@ -63,6 +61,16 @@ def main() -> None:
         console.print(f"Tools: off ({config.MODEL} doesn't support tool calling)\n")
     else:
         console.print("Tools: off\n")
+
+    # Optionally print the system prompt. It's the first message in the history.
+    if config.SHOW_SYSTEM_PROMPT:
+        console.print(f"[{theme.SYSTEM_PROMPT_COLOR}]System:[/{theme.SYSTEM_PROMPT_COLOR}]")
+        console.print(
+            agent.messages[0]["content"] + "\n",
+            style=theme.THINKING_COLOR,
+            markup=False,
+            highlight=False,
+        )
 
     while True:
         # Get user prompt

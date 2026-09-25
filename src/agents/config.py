@@ -27,6 +27,9 @@ MAX_ROUNDS: int = 10
 # Whether to show the model's thinking in the chat; turned on with --show-thinking
 SHOW_THINKING: bool = False
 
+# Whether to print the system prompt when the chat starts; turned on with --show-system-prompt
+SHOW_SYSTEM_PROMPT: bool = False
+
 
 def get_client() -> ollama.Client:
     """

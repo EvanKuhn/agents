@@ -19,7 +19,8 @@ to switch prompt and status bar colors for light- or dark-background terminals.
 
 Every conversation starts with a shared system prompt, built from the templates in
 `src/agents/prompts/`: where the agent is running, today's date, formatting rules, and guidance on
-using tools (or a note that there are none).
+using tools (or a note that there are none). Pass `--show-system-prompt` to print it when the
+chat starts.
 
 Set `AGENTS_PERSONA=<name>`, or pass `--persona=<name>`, to give the agent a personality from
 `src/agents/personas/` (e.g. `pirate`, `socratic`, `terse`), appended to the shared system

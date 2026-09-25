@@ -7,7 +7,7 @@ steps and which are done. `journal/` holds the owner's notes on what was learned
 ## Commands
 
 - `uv run agent`: start the chat agent. Options: `--theme`, `--persona`, `--no-tools`,
-  `--max-rounds`, `--show-thinking`.
+  `--max-rounds`, `--show-thinking`, `--show-system-prompt`.
 - `./scripts/helloworld.py`: send one prompt to the model and print the reply.
 - Config comes from `AGENTS_MODEL`, `AGENTS_HOST`, `AGENTS_THEME` and `AGENTS_PERSONA`; CLI flags
   override them. The default model is `qwen3`, which needs Ollama running locally.

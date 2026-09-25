@@ -38,6 +38,11 @@ def main() -> None:
         action="store_true",
         help="Show the model's thinking (thinking models only)",
     )
+    parser.add_argument(
+        "--show-system-prompt",
+        action="store_true",
+        help="Print the system prompt at the start of the chat",
+    )
     args = parser.parse_args()
 
     # Update config with user-provided options
@@ -50,6 +55,8 @@ def main() -> None:
         config.MAX_ROUNDS = args.max_rounds
     if args.show_thinking:
         config.SHOW_THINKING = True
+    if args.show_system_prompt:
+        config.SHOW_SYSTEM_PROMPT = True
     if args.theme:
         config.THEME = args.theme
     if args.persona:
