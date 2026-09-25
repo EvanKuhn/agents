@@ -8,7 +8,7 @@
 
 from agents import config
 from agents.prompts import initial_messages
-from agents.ui import console, get_agent_theme
+from agents.ui import agent_prompt, console, get_agent_theme, user_prompt
 
 QUERY = "Why is the sky blue?"
 
@@ -17,7 +17,7 @@ def main() -> None:
     client = config.get_client()
     theme = get_agent_theme(config.THEME)
 
-    console.print(f"[{theme.USER_PROMPT_COLOR}]User:[/{theme.USER_PROMPT_COLOR}] {QUERY}")
+    console.print(user_prompt(theme) + QUERY)
     stream = client.chat(
         model=config.MODEL,
         messages=initial_messages(config.PERSONA, tools_enabled=False)
@@ -25,7 +25,7 @@ def main() -> None:
         stream=True,
     )
 
-    console.print(f"[{theme.AGENT_PROMPT_COLOR}]Assistant:[/{theme.AGENT_PROMPT_COLOR}] ", end="")
+    console.print(agent_prompt(theme), end=" ")
     for chunk in stream:
         console.print(chunk["message"]["content"], end="", markup=False, highlight=False)
     console.print()

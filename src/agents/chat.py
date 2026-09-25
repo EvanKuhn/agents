@@ -26,7 +26,7 @@ from . import config
 from .agent import Agent, AgentObserver, Reply
 from .prompts import initial_messages
 from .tools import ALLOWED_DIR, TOOLS, TOOLS_BY_NAME
-from .ui import console, get_agent_theme
+from .ui import agent_prompt, console, get_agent_theme, system_prompt, user_prompt
 
 
 def main() -> None:
@@ -44,10 +44,6 @@ def main() -> None:
         observer=ConsoleObserver(theme, config.SHOW_THINKING, config.MAX_ROUNDS),
     )
 
-    # String constants
-    user_prompt_str = f"[{theme.USER_PROMPT_COLOR}]User:[/{theme.USER_PROMPT_COLOR}] "
-    agent_prompt_str = f"\n[{theme.AGENT_PROMPT_COLOR}]Assistant:[/{theme.AGENT_PROMPT_COLOR}]"
-
     # Print header
     console.print(
         f"Chatting with {config.MODEL} (persona: {config.PERSONA}) - type 'exit' or 'quit' to stop."
@@ -64,7 +60,7 @@ def main() -> None:
 
     # Optionally print the system prompt. It's the first message in the history.
     if config.SHOW_SYSTEM_PROMPT:
-        console.print(f"[{theme.SYSTEM_PROMPT_COLOR}]System:[/{theme.SYSTEM_PROMPT_COLOR}]")
+        console.print(system_prompt(theme))
         console.print(
             agent.messages[0]["content"] + "\n",
             style=theme.THINKING_COLOR,
@@ -75,7 +71,7 @@ def main() -> None:
     while True:
         # Get user prompt
         try:
-            user_input = console.input(user_prompt_str).strip()
+            user_input = console.input(user_prompt(theme)).strip()
         except EOFError, KeyboardInterrupt:
             console.print()
             break
@@ -87,7 +83,7 @@ def main() -> None:
             break
 
         # Let the agent work on it; the observer prints its progress
-        console.print(agent_prompt_str)
+        console.print(agent_prompt(theme))
         agent.run_turn(user_input)
 
 
