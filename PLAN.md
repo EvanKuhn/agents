@@ -27,7 +27,7 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
       in model selection (e.g., Llama 3.1/3.2, Qwen2.5, or Mistral variants
       with function-calling support).
 
-- [ ] **5. Multi-step tool loop / ReAct-style reasoning.** Instead of one
+- [x] **5. Multi-step tool loop / ReAct-style reasoning.** Instead of one
       tool call per turn, let the agent chain several calls (think → act →
       observe → think again) until it decides it's done. This is the core
       "agent loop" and a good place to add a max-iteration safety valve.

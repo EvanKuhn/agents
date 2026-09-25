@@ -14,6 +14,7 @@ class DarkTheme:
     STATUS_BAR_FG_COLOR = "grey70"
     STATUS_BAR_BG_COLOR = "grey11"
     TOOL_CALL_COLOR = "green"
+    THINKING_COLOR = "italic grey58"
 
 
 class LightTheme:
@@ -24,6 +25,7 @@ class LightTheme:
     STATUS_BAR_FG_COLOR = "grey30"
     STATUS_BAR_BG_COLOR = "grey89"
     TOOL_CALL_COLOR = "dark_green"
+    THINKING_COLOR = "italic grey42"
 
 
 # Theme name (as passed via --theme / AGENTS_THEME) -> theme class

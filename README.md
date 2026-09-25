@@ -30,6 +30,10 @@ The agent offers the model tools (a calculator, the current time, and listing/re
 defined in `src/agents/tools.py`. File tools only work inside the directory you start the agent
 from. Pass `--no-tools` to turn tools off.
 
+The agent can use tools over several rounds before answering: it calls a tool, looks at the
+result, and decides what to do next. Pass `--max-rounds=N` to change the limit (default 10), and
+`--show-thinking` to watch a thinking model reason between steps.
+
 ## Development
 
 Format, lint and type check the code with [ruff](https://docs.astral.sh/ruff/) and

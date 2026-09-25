@@ -220,9 +220,11 @@ def _resolve_allowed_path(path: str) -> Path:
     return resolved
 
 
-# All tools offered to the model, and a lookup from tool name to function
-TOOLS = [calculate, get_current_time, list_files, read_file]
-TOOLS_BY_NAME = {tool.__name__: tool for tool in TOOLS}
+# Lookup from tool name to function, and the list of all tools offered to the model
+TOOLS_BY_NAME: dict[str, Callable[..., str]] = {
+    tool.__name__: tool for tool in (calculate, get_current_time, list_files, read_file)
+}
+TOOLS: list[Callable[..., str]] = list(TOOLS_BY_NAME.values())
 
 
 def run_tool(name: str, arguments: dict) -> str:

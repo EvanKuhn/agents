@@ -21,6 +21,12 @@ PERSONA = os.environ.get("AGENTS_PERSONA", DEFAULT_PERSONA)
 # Whether to offer tools to the model; turned off with --no-tools
 TOOLS_ENABLED: bool = True
 
+# Most rounds of tool calls the agent makes per question; set with --max-rounds
+MAX_ROUNDS: int = 10
+
+# Whether to show the model's thinking in the chat; turned on with --show-thinking
+SHOW_THINKING: bool = False
+
 
 def get_client() -> ollama.Client:
     """
