@@ -25,7 +25,7 @@ class DarkTheme(Theme):
     AGENT_PROMPT_COLOR = "bold yellow"
     SYSTEM_PROMPT_COLOR = "bold red"
     STATUS_BAR_FG_COLOR = "grey70"
-    STATUS_BAR_BG_COLOR = "grey11"
+    STATUS_BAR_BG_COLOR = "#474811"  # needs a truecolor terminal
     TOOL_CALL_COLOR = "green"
     THINKING_COLOR = "italic grey58"
 

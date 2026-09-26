@@ -82,14 +82,14 @@ class AgentChat:
             "type 'exit' or 'quit' to stop."
         )
         if self.tools:
-            console.print(
-                f"Tools: {', '.join(TOOLS_BY_NAME)} (up to {self.config.max_rounds} rounds per "
-                f"question; files limited to {ALLOWED_DIR})\n"
-            )
+            console.print(f"- Tools: {', '.join(TOOLS_BY_NAME)}")
+            console.print(f"- Max {self.config.max_rounds} tool calls per query")
+            console.print(f"- File access limited to {ALLOWED_DIR}")
         elif self.config.tools_enabled:
-            console.print(f"Tools: off ({self.config.model} doesn't support tool calling)\n")
+            console.print(f"- Tools: off ({self.config.model} doesn't support tool calling)")
         else:
-            console.print("Tools: off\n")
+            console.print("- Tools: off")
+        console.print()
 
     def _print_system_prompt_if_enabled(self) -> None:
         """

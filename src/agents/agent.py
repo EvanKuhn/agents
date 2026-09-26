@@ -40,7 +40,7 @@ class Reply:
     - text        : the reply text so far
     - thinking    : the model's thinking so far (thinking models only)
     - tool_calls  : tools the model asked for so far
-    - token_count : output tokens; approximate while streaming, exact once done
+    - token_count : output tokens, including thinking; approximate while streaming, exact once done
     - thinking_now: whether the latest chunk was thinking rather than text
     - done        : whether the reply is complete
     """
@@ -171,7 +171,8 @@ class Agent:
             reply.text += content
             reply.thinking += thinking
             reply.thinking_now = bool(thinking) and not content
-            if content:
+            # Each streamed chunk is roughly one token, whether reply text or thinking
+            if content or thinking:
                 reply.token_count += 1
 
             # Tool calls can arrive in any chunk, so collect them as we go
