@@ -6,7 +6,7 @@
 # shebang uses `uv run`, which finds the project (and its installed `agents`
 # package) by searching up from the current directory.
 
-from agents import config
+from agents.config import Config
 from agents.prompts import initial_messages
 from agents.ui import agent_prompt, console, get_agent_theme, user_prompt
 
@@ -14,13 +14,14 @@ QUERY = "Why is the sky blue?"
 
 
 def main() -> None:
+    config = Config.from_env()
     client = config.get_client()
-    theme = get_agent_theme(config.THEME)
+    theme = get_agent_theme(config.theme)
 
     console.print(user_prompt(theme) + QUERY)
     stream = client.chat(
-        model=config.MODEL,
-        messages=initial_messages(config.PERSONA, tools_enabled=False)
+        model=config.model,
+        messages=initial_messages(config.persona, tools_enabled=False)
         + [{"role": "user", "content": QUERY}],
         stream=True,
     )

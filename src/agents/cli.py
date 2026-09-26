@@ -1,9 +1,10 @@
-# CLI entry point. `agent` parses options into config, then starts the chat
-# agent.
+# CLI entry point. `agent` parses options into a Config, then starts the chat
+# agent with it.
 
 import argparse
 
-from . import chat, config
+from . import chat
+from .config import Config
 from .personas import list_personas
 
 
@@ -31,7 +32,7 @@ def main() -> None:
         "--max-rounds",
         type=int,
         metavar="N",
-        help=f"Most rounds of tool calls per question (default: {config.MAX_ROUNDS})",
+        help=f"Most rounds of tool calls per question (default: {Config.max_rounds})",
     )
     parser.add_argument(
         "--show-thinking",
@@ -45,27 +46,21 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Update config with user-provided options
+    # Build the config from user-provided options. Flags that weren't given
+    # are None, so the environment variables and defaults apply instead.
 
-    if args.no_tools:
-        config.TOOLS_ENABLED = False
-    if args.max_rounds is not None:
-        if args.max_rounds < 1:
-            parser.error("--max-rounds must be at least 1")
-        config.MAX_ROUNDS = args.max_rounds
-    if args.show_thinking:
-        config.SHOW_THINKING = True
-    if args.show_system_prompt:
-        config.SHOW_SYSTEM_PROMPT = True
-    if args.theme:
-        config.THEME = args.theme
-    if args.persona:
-        config.PERSONA = args.persona
-    if config.PERSONA not in list_personas():
-        parser.error(
-            f"unknown persona {config.PERSONA!r} (choose from {', '.join(list_personas())})"
+    try:
+        config = Config.from_env(
+            theme=args.theme,
+            persona=args.persona,
+            max_rounds=args.max_rounds,
+            tools_enabled=False if args.no_tools else None,
+            show_thinking=args.show_thinking or None,
+            show_system_prompt=args.show_system_prompt or None,
         )
+    except ValueError as e:
+        parser.error(str(e))
 
     # Run the chat
 
-    chat.main()
+    chat.main(config)

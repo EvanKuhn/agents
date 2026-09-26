@@ -1,56 +1,113 @@
-# Shared configuration: which model to talk to, and where to find it.
-# Both can be overridden via environment variables so you can point at a
-# different model or a remote Ollama host without touching code.
+# Shared configuration: which model to use, where to find it, and how the chat
+# behaves. cli.py builds one Config at startup and passes it to whatever needs
+# it. Each setting comes from, in increasing priority: the defaults below, the
+# AGENTS_* environment variables, and command-line flags.
 
 import os
+from dataclasses import dataclass
+from typing import Any, Self
 
 import ollama
 
-from .personas import DEFAULT_PERSONA
+from .personas import DEFAULT_PERSONA, list_personas
+from .ui import THEMES
 
 # Some models:
 # - deepseek-r1   : Thinking model but fails with tools.
 # - llama3.1      : Fast and lightweight. Has trouble with tools.
 # - qwen3         : Good for tool calling. Runs slower.
 
-MODEL = os.environ.get("AGENTS_MODEL", "qwen3")
-HOST = os.environ.get("AGENTS_HOST", "http://localhost:11434")
-THEME = os.environ.get("AGENTS_THEME", "dark")
-PERSONA = os.environ.get("AGENTS_PERSONA", DEFAULT_PERSONA)
-
-# Whether to offer tools to the model; turned off with --no-tools
-TOOLS_ENABLED: bool = True
-
-# Most rounds of tool calls the agent makes per question; set with --max-rounds
-MAX_ROUNDS: int = 10
-
-# Whether to show the model's thinking in the chat; turned on with --show-thinking
-SHOW_THINKING: bool = False
-
-# Whether to print the system prompt when the chat starts; turned on with --show-system-prompt
-SHOW_SYSTEM_PROMPT: bool = False
+# Settings that can be set by environment variable, and the variable for each
+ENV_VARS = {
+    "model": "AGENTS_MODEL",
+    "host": "AGENTS_HOST",
+    "theme": "AGENTS_THEME",
+    "persona": "AGENTS_PERSONA",
+}
 
 
-def get_client() -> ollama.Client:
+@dataclass(frozen=True)
+class Config:
     """
-    Return an ollama.Client instance
+    All the settings for a run. Frozen, so nothing can change a setting once
+    the agent has started.
+    - model              : Ollama model to use
+    - host               : URL of the Ollama server
+    - theme              : color theme, "dark" or "light"
+    - persona            : persona to append to the system prompt, or "none"
+    - tools_enabled      : whether to offer tools to the model (--no-tools)
+    - max_rounds         : most rounds of tool calls per question (--max-rounds)
+    - show_thinking      : whether to show the model's thinking (--show-thinking)
+    - show_system_prompt : whether to print the system prompt (--show-system-prompt)
     """
-    return ollama.Client(host=HOST)
+
+    model: str = "qwen3"
+    host: str = "http://localhost:11434"
+    theme: str = "dark"
+    persona: str = DEFAULT_PERSONA
+    tools_enabled: bool = True
+    max_rounds: int = 10
+    show_thinking: bool = False
+    show_system_prompt: bool = False
+
+    def __post_init__(self) -> None:
+        """
+        Check the settings are valid, so mistakes are caught at startup.
+
+        Raises:
+            ValueError: A setting has an invalid value.
+        """
+        if self.theme not in THEMES:
+            raise ValueError(f"unknown theme {self.theme!r} (choose from {', '.join(THEMES)})")
+        if self.persona not in list_personas():
+            raise ValueError(
+                f"unknown persona {self.persona!r} (choose from {', '.join(list_personas())})"
+            )
+        if self.max_rounds < 1:
+            raise ValueError("max rounds must be at least 1")
+
+    @classmethod
+    def from_env(cls, **overrides: Any) -> Self:
+        """
+        Build a Config from the defaults, then the AGENTS_* environment
+        variables, then the given overrides.
+
+        Args:
+            overrides: Settings to use instead, e.g. from command-line flags.
+                A value of None means "not given", and is ignored.
+
+        Returns:
+            The new Config.
+
+        Raises:
+            ValueError: A setting has an invalid value.
+        """
+        values: dict[str, Any] = {
+            name: os.environ[var] for name, var in ENV_VARS.items() if var in os.environ
+        }
+        values.update({name: value for name, value in overrides.items() if value is not None})
+        return cls(**values)
+
+    def get_client(self) -> ollama.Client:
+        """
+        Return an ollama.Client for the configured host. Doesn't contact the
+        server until it's used.
+        """
+        return ollama.Client(host=self.host)
 
 
-def supports_thinking(client: ollama.Client) -> bool:
+def model_capabilities(client: ollama.Client, model: str) -> list[str]:
     """
-    Returns a bool indicating if the model supports thinking. Eg:
-    - llama3.1     : False
-    - deepseek-r1  : True
-    """
-    return "thinking" in (client.show(MODEL).capabilities or [])
+    Ask the Ollama server what the model can do. Kept out of Config because it
+    talks to the server, and a Config should be cheap to create. Eg:
+    - llama3.1    : ["completion", "tools"]
+    - qwen3       : ["completion", "tools", "thinking"]
 
+    Args:
+        client: Ollama client to ask.
+        model: Name of the model.
 
-def supports_tools(client: ollama.Client) -> bool:
+    Returns:
+        The model's capabilities, e.g. "tools" or "thinking".
     """
-    Returns a bool indicating if the model supports tool calling. Eg:
-    - llama3.1     : True
-    - deepseek-r1  : True
-    """
-    return "tools" in (client.show(MODEL).capabilities or [])
+    return list(client.show(model).capabilities or [])

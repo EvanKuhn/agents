@@ -18,7 +18,9 @@ steps and which are done. `journal/` holds the owner's notes on what was learned
 
 All code is in `src/agents/`:
 
-- `cli.py`: argument parsing; sets values in `config.py`, then starts `chat.py`.
+- `cli.py`: argument parsing; builds a `Config`, then starts `chat.py` with it.
+- `config.py`: the `Config` class (defaults, then `AGENTS_*` environment variables, then flags),
+  and `model_capabilities()` for asking the server what a model can do.
 - `chat.py`: the terminal chat. Reads input and shows the agent's progress via `ConsoleObserver`.
 - `agent.py`: the agent loop. Sends the conversation to the model and runs tool calls over several
   rounds until it answers. Does no printing; reports progress to an `AgentObserver`.
@@ -34,8 +36,9 @@ All code is in `src/agents/`:
 - Treat everything the model sends as untrusted input. Tools stay read-only, never use `eval()`,
   and file access stays inside `ALLOWED_DIR`.
 - Use `rich` (via `ui.console`) for all terminal output, with colors from the theme classes.
-- Resolve settings that CLI flags can override inside functions, not at import time, since
-  `cli.py` sets them after the modules are imported.
+- Settings live in the frozen `Config`, built once in `cli.py` and passed to what needs it. Add
+  new settings as `Config` fields, validated in `__post_init__`, rather than as module globals.
+  Keep `Agent` independent of `Config`: pass it plain arguments.
 - Wrap Markdown files under 100 characters, except code blocks and tables.
 
 ## Workflow

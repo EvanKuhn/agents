@@ -22,15 +22,15 @@ from rich.live import Live
 from rich.markdown import Markdown
 from rich.text import Text
 
-from . import config
 from .agent import Agent, AgentObserver, Reply
+from .config import Config, model_capabilities
 from .prompts import initial_messages
 from .tools import ALLOWED_DIR, TOOLS, TOOLS_BY_NAME
 from .ui import agent_prompt, console, get_agent_theme, system_prompt, user_prompt
 
 
-def main() -> None:
-    AgentChat().run()
+def main(config: Config) -> None:
+    AgentChat(config).run()
 
 
 # --------------------------------------------------------------------------------------------------
@@ -44,18 +44,24 @@ class AgentChat:
     reads the user's messages and hands each one to the agent.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, config: Config) -> None:
+        """
+        Args:
+            config: Settings for the chat and the agent.
+        """
+        self.config = config
         client = config.get_client()
-        self.theme = get_agent_theme(config.THEME)
-        self.tools = TOOLS if config.TOOLS_ENABLED and config.supports_tools(client) else None
+        capabilities = model_capabilities(client, config.model)
+        self.theme = get_agent_theme(config.theme)
+        self.tools = TOOLS if config.tools_enabled and "tools" in capabilities else None
         self.agent = Agent(
             client=client,
-            model=config.MODEL,
-            messages=initial_messages(config.PERSONA, tools_enabled=bool(self.tools)),
+            model=config.model,
+            messages=initial_messages(config.persona, tools_enabled=bool(self.tools)),
             tools=self.tools,
-            think=config.supports_thinking(client),
-            max_rounds=config.MAX_ROUNDS,
-            observer=ConsoleObserver(self.theme, config.SHOW_THINKING, config.MAX_ROUNDS),
+            think="thinking" in capabilities,
+            max_rounds=config.max_rounds,
+            observer=ConsoleObserver(self.theme, config.show_thinking, config.max_rounds),
         )
 
     def run(self) -> None:
@@ -72,16 +78,16 @@ class AgentChat:
         Print which model and persona the chat uses, and which tools are available.
         """
         console.print(
-            f"Chatting with {config.MODEL} (persona: {config.PERSONA}) - "
+            f"Chatting with {self.config.model} (persona: {self.config.persona}) - "
             "type 'exit' or 'quit' to stop."
         )
         if self.tools:
             console.print(
-                f"Tools: {', '.join(TOOLS_BY_NAME)} (up to {config.MAX_ROUNDS} rounds per "
+                f"Tools: {', '.join(TOOLS_BY_NAME)} (up to {self.config.max_rounds} rounds per "
                 f"question; files limited to {ALLOWED_DIR})\n"
             )
-        elif config.TOOLS_ENABLED:
-            console.print(f"Tools: off ({config.MODEL} doesn't support tool calling)\n")
+        elif self.config.tools_enabled:
+            console.print(f"Tools: off ({self.config.model} doesn't support tool calling)\n")
         else:
             console.print("Tools: off\n")
 
@@ -90,7 +96,7 @@ class AgentChat:
         Print the system prompt the model receives, if --show-system-prompt was given.
         It's the first message in the history.
         """
-        if config.SHOW_SYSTEM_PROMPT:
+        if self.config.show_system_prompt:
             console.print(system_prompt(self.theme))
             console.print(
                 self.agent.messages[0]["content"] + "\n",
