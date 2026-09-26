@@ -30,61 +30,102 @@ from .ui import agent_prompt, console, get_agent_theme, system_prompt, user_prom
 
 
 def main() -> None:
-    # Initialize client and other fields
-    client = config.get_client()
-    theme = get_agent_theme(config.THEME)
-    tools = TOOLS if config.TOOLS_ENABLED and config.supports_tools(client) else None
-    agent = Agent(
-        client=client,
-        model=config.MODEL,
-        messages=initial_messages(config.PERSONA, tools_enabled=bool(tools)),
-        tools=tools,
-        think=config.supports_thinking(client),
-        max_rounds=config.MAX_ROUNDS,
-        observer=ConsoleObserver(theme, config.SHOW_THINKING, config.MAX_ROUNDS),
-    )
+    AgentChat().run()
 
-    # Print header
-    console.print(
-        f"Chatting with {config.MODEL} (persona: {config.PERSONA}) - type 'exit' or 'quit' to stop."
-    )
-    if tools:
-        console.print(
-            f"Tools: {', '.join(TOOLS_BY_NAME)} (up to {config.MAX_ROUNDS} rounds per question; "
-            f"files limited to {ALLOWED_DIR})\n"
-        )
-    elif config.TOOLS_ENABLED:
-        console.print(f"Tools: off ({config.MODEL} doesn't support tool calling)\n")
-    else:
-        console.print("Tools: off\n")
 
-    # Optionally print the system prompt. It's the first message in the history.
-    if config.SHOW_SYSTEM_PROMPT:
-        console.print(system_prompt(theme))
-        console.print(
-            agent.messages[0]["content"] + "\n",
-            style=theme.THINKING_COLOR,
-            markup=False,
-            highlight=False,
+# --------------------------------------------------------------------------------------------------
+# AgentChat
+# --------------------------------------------------------------------------------------------------
+
+
+class AgentChat:
+    """
+    A chat session in the terminal: sets up the agent from config, then
+    reads the user's messages and hands each one to the agent.
+    """
+
+    def __init__(self) -> None:
+        client = config.get_client()
+        self.theme = get_agent_theme(config.THEME)
+        self.tools = TOOLS if config.TOOLS_ENABLED and config.supports_tools(client) else None
+        self.agent = Agent(
+            client=client,
+            model=config.MODEL,
+            messages=initial_messages(config.PERSONA, tools_enabled=bool(self.tools)),
+            tools=self.tools,
+            think=config.supports_thinking(client),
+            max_rounds=config.MAX_ROUNDS,
+            observer=ConsoleObserver(self.theme, config.SHOW_THINKING, config.MAX_ROUNDS),
         )
 
-    while True:
-        # Get user prompt
-        try:
-            user_input = console.input(user_prompt(theme)).strip()
-        except EOFError, KeyboardInterrupt:
-            console.print()
-            break
+    def run(self) -> None:
+        """
+        Print the header (and the system prompt, if asked), then chat until
+        the user types 'exit' or 'quit', or presses Ctrl+D/Ctrl+C.
+        """
+        self._print_header()
+        self._print_system_prompt_if_enabled()
+        self._run_agent_loop()
 
-        # Handle empty string or exit/quit
-        if not user_input:
-            continue
-        if user_input.lower() in ("exit", "quit"):
-            break
+    def _print_header(self) -> None:
+        """
+        Print which model and persona the chat uses, and which tools are available.
+        """
+        console.print(
+            f"Chatting with {config.MODEL} (persona: {config.PERSONA}) - "
+            "type 'exit' or 'quit' to stop."
+        )
+        if self.tools:
+            console.print(
+                f"Tools: {', '.join(TOOLS_BY_NAME)} (up to {config.MAX_ROUNDS} rounds per "
+                f"question; files limited to {ALLOWED_DIR})\n"
+            )
+        elif config.TOOLS_ENABLED:
+            console.print(f"Tools: off ({config.MODEL} doesn't support tool calling)\n")
+        else:
+            console.print("Tools: off\n")
 
-        # Let the agent work on it; the observer prints its progress
-        console.print(agent_prompt(theme))
-        agent.run_turn(user_input)
+    def _print_system_prompt_if_enabled(self) -> None:
+        """
+        Print the system prompt the model receives, if --show-system-prompt was given.
+        It's the first message in the history.
+        """
+        if config.SHOW_SYSTEM_PROMPT:
+            console.print(system_prompt(self.theme))
+            console.print(
+                self.agent.messages[0]["content"] + "\n",
+                style=self.theme.THINKING_COLOR,
+                markup=False,
+                highlight=False,
+            )
+
+    def _run_agent_loop(self) -> None:
+        """
+        Read the user's messages and hand each one to the agent, until the
+        user types 'exit' or 'quit', or presses Ctrl+D/Ctrl+C.
+        """
+        while True:
+            # Get user prompt
+            try:
+                user_input = console.input(user_prompt(self.theme)).strip()
+            except EOFError, KeyboardInterrupt:
+                console.print()
+                break
+
+            # Handle empty string or exit/quit
+            if not user_input:
+                continue
+            if user_input.lower() in ("exit", "quit"):
+                break
+
+            # Let the agent work on it; the observer prints its progress
+            console.print(agent_prompt(self.theme))
+            self.agent.run_turn(user_input)
+
+
+# --------------------------------------------------------------------------------------------------
+# ConsoleObserver
+# --------------------------------------------------------------------------------------------------
 
 
 class ConsoleObserver(AgentObserver):
