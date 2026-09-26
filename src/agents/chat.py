@@ -57,7 +57,7 @@ class AgentChat:
         self.agent = Agent(
             client=client,
             model=config.model,
-            messages=initial_messages(config.persona, tools_enabled=bool(self.tools)),
+            messages=initial_messages(config.model, config.persona, tools_enabled=bool(self.tools)),
             tools=self.tools,
             think="thinking" in capabilities,
             max_rounds=config.max_rounds,

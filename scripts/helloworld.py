@@ -21,7 +21,7 @@ def main() -> None:
     console.print(user_prompt(theme) + QUERY)
     stream = client.chat(
         model=config.model,
-        messages=initial_messages(config.persona, tools_enabled=False)
+        messages=initial_messages(config.model, config.persona, tools_enabled=False)
         + [{"role": "user", "content": QUERY}],
         stream=True,
     )
