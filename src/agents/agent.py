@@ -59,6 +59,12 @@ class AgentObserver:
     so a subclass only overrides the ones it cares about.
     """
 
+    def turn_started(self) -> None:
+        """
+        The agent is starting on a new user message. The replies and tool
+        calls that follow, until run_turn() returns, all belong to this turn.
+        """
+
     def reply_started(self, round_number: int | None) -> None:
         """
         A request to the model is starting. round_number counts from 1 while
@@ -126,6 +132,7 @@ class Agent:
         Returns:
             The model's final answer.
         """
+        self.observer.turn_started()
         self.messages.append({"role": "user", "content": user_input})
 
         # Calls made for this question, as (name, arguments) keys. Repeats are

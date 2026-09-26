@@ -137,8 +137,10 @@ class AgentChat:
 class ConsoleObserver(AgentObserver):
     """
     Shows the agent's progress in the terminal: each reply streams in as
-    markdown, with a status line showing elapsed time / tokens / round /
-    state, and each tool call is printed with a preview of its result.
+    markdown, with a status line showing elapsed time / tokens / tool use /
+    state, and each tool call is printed with a preview of its result. The
+    elapsed time and tokens are totals for the whole turn, so they keep
+    counting across tool calls rather than restarting with each reply.
     """
 
     def __init__(self, theme, show_thinking: bool, max_rounds: int) -> None:
@@ -153,11 +155,15 @@ class ConsoleObserver(AgentObserver):
         self.max_rounds = max_rounds
         self.live: Live | None = None
         self.round_number: int | None = None
-        self.start = 0.0
+        self.turn_start = 0.0
+        self.turn_tokens = 0  # tokens from this turn's finished replies
+
+    def turn_started(self) -> None:
+        self.turn_start = time.monotonic()
+        self.turn_tokens = 0
 
     def reply_started(self, round_number: int | None) -> None:
         self.round_number = round_number
-        self.start = time.monotonic()
         self.live = Live(console=console, refresh_per_second=10, vertical_overflow="ellipsis")
         self.live.start()
 
@@ -170,6 +176,7 @@ class ConsoleObserver(AgentObserver):
             self.live.update(self._render(reply))
             self.live.stop()
             self.live = None
+        self.turn_tokens += reply.token_count
         console.print()
 
     def tool_called(self, name: str, arguments: dict, result: str) -> None:
@@ -203,11 +210,14 @@ class ConsoleObserver(AgentObserver):
         else:
             status_word = "Generating..."
 
-        # Build prompt parts: elapsed time, token count, round number, status
-        elapsed = time.monotonic() - self.start
-        parts = [f"{elapsed:.0f}s", f"{reply.token_count} tokens"]
+        # Build status parts: elapsed time and tokens for the whole turn, rounds
+        # of tool calls made so far this turn (one fewer than the round this
+        # reply is in), status
+        elapsed = time.monotonic() - self.turn_start
+        tokens = self.turn_tokens + reply.token_count
+        parts = [f"{elapsed:.0f}s", f"{tokens} tokens"]
         if self.round_number:
-            parts.append(f"Round {self.round_number}/{self.max_rounds}")
+            parts.append(f"Tool calls: {self.round_number - 1}/{self.max_rounds}")
         parts.append(status_word)
         status = Text(
             " - ".join(parts),
