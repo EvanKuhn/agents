@@ -12,7 +12,8 @@ This starts a chat in your terminal. The agent keeps the full conversation histo
 remembers earlier turns, and it can use tools.
 
 Set `AGENTS_MODEL` / `AGENTS_HOST` to point at a different model or Ollama host (defaults:
-`qwen3` at `http://localhost:11434`).
+`qwen3` at `http://localhost:11434`). You can also pass `--model=<name>`, e.g.
+`--model=llama3.1`; the model must already be downloaded with `ollama pull`.
 
 Set `AGENTS_THEME=light|dark` (default `dark`), or pass `--theme=light|dark` on the command line,
 to switch prompt and status bar colors for light- or dark-background terminals.

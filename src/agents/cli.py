@@ -3,6 +3,8 @@
 
 import argparse
 
+import ollama
+
 from . import chat
 from .config import Config
 from .personas import list_personas
@@ -13,6 +15,10 @@ def main() -> None:
 
     # Define options
 
+    parser.add_argument(
+        "--model",
+        help=f"Ollama model to use (default: $AGENTS_MODEL or '{Config.model}')",
+    )
     parser.add_argument(
         "--theme",
         choices=["light", "dark"],
@@ -51,6 +57,7 @@ def main() -> None:
 
     try:
         config = Config.from_env(
+            model=args.model,
             theme=args.theme,
             persona=args.persona,
             max_rounds=args.max_rounds,
@@ -61,6 +68,10 @@ def main() -> None:
     except ValueError as e:
         parser.error(str(e))
 
-    # Run the chat
+    # Run the chat. Ollama's own messages are clear, e.g. "model 'x' not found"
+    # or "Failed to connect to Ollama", so show them without a traceback.
 
-    chat.main(config)
+    try:
+        chat.main(config)
+    except (ollama.ResponseError, ConnectionError) as e:
+        parser.exit(1, f"agent: error: {e}\n")

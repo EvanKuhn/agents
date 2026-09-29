@@ -75,11 +75,13 @@ then 8→9→10 for memory, then 11→12→14 as stretch goals.
 
 ## More Ideas
 
+- [X] Optionally show thinking, tool calls
 - [X] Support automated formatting, linting, and type checking (try `ruff` and `ty`)
 - [X] Add Makefile with useful commands
+- [X] Support specifying model via `--model=` flag
 - [ ] Temperature setting
-- [ ] More tools (see TODOs in tools.py)
-- [ ] Optionally show thinking, tool calls, API request/response, etc
+- [ ] More tools (see TODOs in `tools.py`)
+- [ ] Support debug output for API request/response, etc
 - [ ] Context management and compaction
 - [ ] Refactoring / code cleanup
 
