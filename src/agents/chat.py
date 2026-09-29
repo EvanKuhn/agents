@@ -54,6 +54,7 @@ class AgentChat:
         capabilities = model_capabilities(client, config.model)
         self.theme = get_agent_theme(config.theme)
         self.tools = TOOLS if config.tools_enabled and "tools" in capabilities else None
+        self.observer = ConsoleObserver(self.theme, config.show_thinking, config.max_rounds)
         self.agent = Agent(
             client=client,
             model=config.model,
@@ -61,7 +62,7 @@ class AgentChat:
             tools=self.tools,
             think="thinking" in capabilities,
             max_rounds=config.max_rounds,
-            observer=ConsoleObserver(self.theme, config.show_thinking, config.max_rounds),
+            observer=self.observer,
         )
 
     def run(self) -> None:
@@ -124,9 +125,15 @@ class AgentChat:
             if user_input.lower() in ("exit", "quit"):
                 break
 
-            # Let the agent work on it; the observer prints its progress
+            # Let the agent work on it; the observer prints its progress. Ctrl+C
+            # mid-reply must stop the live display, or the cursor stays hidden.
             console.print(agent_prompt(self.theme))
-            self.agent.run_turn(user_input)
+            try:
+                self.agent.run_turn(user_input)
+            except KeyboardInterrupt:
+                self.observer.stop_live()
+                console.print()
+                break
 
 
 # --------------------------------------------------------------------------------------------------
@@ -174,10 +181,18 @@ class ConsoleObserver(AgentObserver):
     def reply_finished(self, reply: Reply) -> None:
         if self.live:
             self.live.update(self._render(reply))
-            self.live.stop()
-            self.live = None
+        self.stop_live()
         self.turn_tokens += reply.token_count
         console.print()
+
+    def stop_live(self) -> None:
+        """
+        Stop the live display, if one is running. Rich hides the cursor while
+        it's live, and only shows it again when stopped.
+        """
+        if self.live:
+            self.live.stop()
+            self.live = None
 
     def tool_called(self, name: str, arguments: dict, result: str) -> None:
         """
