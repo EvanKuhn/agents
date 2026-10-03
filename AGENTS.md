@@ -9,6 +9,8 @@ steps and which are done. `journal/` holds the owner's notes on what was learned
 - `uv run agent`: start the chat agent. Options: `--model`, `--theme`, `--persona`, `--no-tools`,
   `--max-rounds`, `--show-thinking`, `--show-system-prompt`.
 - `./scripts/helloworld.py`: send one prompt to the model and print the reply.
+- `./scripts/structured.py`: compare schema-constrained (`format`) and free JSON answers.
+  `--no-think` is much faster.
 - Config comes from `AGENTS_MODEL`, `AGENTS_HOST`, `AGENTS_THEME` and `AGENTS_PERSONA`; CLI flags
   override them. The default model is `qwen3`, which needs Ollama running locally.
 - `make format`, `make lint` and `make types`: format, lint and type check, using ruff and ty

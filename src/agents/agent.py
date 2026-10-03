@@ -8,6 +8,14 @@
 # returned. (Model templates like qwen3's include that earlier thinking only
 # for the current question, so it doesn't pile up across the conversation.)
 #
+# For a structured answer, run_structured_turn() runs the same loop, then asks
+# for the answer again as JSON. That last request passes a JSON schema as
+# Ollama's `format` param, which constrains the reply to match it. It has to be
+# a separate request: with `format` set the model can only produce JSON, so it
+# can't call tools. The reply is then validated with pydantic, which can check
+# more than the schema can (e.g. "at most 12 words"); if it fails, the errors
+# are sent back and the model tries again.
+#
 # This module does no printing. It reports progress to an AgentObserver, so
 # the same loop can drive the terminal chat (see chat.py) or run silently.
 
@@ -16,6 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import ollama
+from pydantic import BaseModel, ValidationError
 
 from .tools import run_tool
 
@@ -31,6 +40,23 @@ ROUND_LIMIT_NOTE = (
     "question. Don't call any more tools. Answer with what you've found so far, and say if "
     "the answer is incomplete.]"
 )
+
+# Asks for the answer as JSON, after the tool loop has finished
+STRUCTURED_REQUEST = (
+    "Now give your final answer as JSON matching this schema, with no other text:\n{schema}"
+)
+
+# Sent back when the model's JSON fails validation
+VALIDATION_ERROR = (
+    "Your JSON didn't pass validation:\n{errors}\n"
+    "Reply again with corrected JSON matching the schema, with no other text."
+)
+
+
+class StructuredOutputError(Exception):
+    """
+    The model's JSON still failed validation after every retry.
+    """
 
 
 @dataclass
@@ -84,6 +110,12 @@ class AgentObserver:
     def tool_called(self, name: str, arguments: dict, result: str) -> None:
         """
         A tool call has been handled, with the result sent back to the model.
+        """
+
+    def validation_failed(self, errors: str) -> None:
+        """
+        A structured reply failed validation; the errors are being sent back
+        so the model can try again.
         """
 
 
@@ -153,7 +185,59 @@ class Agent:
         self.messages[-1]["content"] += ROUND_LIMIT_NOTE.format(max_rounds=self.max_rounds)
         return self._request(tools=None, round_number=None).text
 
-    def _request(self, tools: list[Callable[..., str]] | None, round_number: int | None) -> Reply:
+    def run_structured_turn[T: BaseModel](
+        self, user_input: str, schema: type[T], max_retries: int = 2, constrained: bool = True
+    ) -> T:
+        """
+        Run a turn as run_turn() does, then ask for the answer as JSON
+        matching the schema, and validate it. If it fails validation, send
+        the errors back and ask again, up to max_retries times.
+
+        Args:
+            user_input: The user's message.
+            schema: Pydantic model the answer must match.
+            max_retries: Most extra attempts after the first fails validation.
+            constrained: Whether to pass the schema as Ollama's `format` param.
+                If False, the model is only asked for JSON, so it can reply
+                with anything (useful for comparing the two).
+
+        Returns:
+            The validated answer.
+
+        Raises:
+            StructuredOutputError: The answer still failed validation after
+                every retry.
+        """
+        self.run_turn(user_input)
+
+        json_schema = schema.model_json_schema()
+        self.messages.append(
+            {"role": "user", "content": STRUCTURED_REQUEST.format(schema=json.dumps(json_schema))}
+        )
+        errors = ""
+        for _ in range(max_retries + 1):
+            reply = self._request(
+                tools=None, round_number=None, format=json_schema if constrained else None
+            )
+            try:
+                return schema.model_validate_json(_strip_code_fence(reply.text))
+            except ValidationError as e:
+                errors = _format_errors(e)
+                self.observer.validation_failed(errors)
+                self.messages.append(
+                    {"role": "user", "content": VALIDATION_ERROR.format(errors=errors)}
+                )
+
+        raise StructuredOutputError(
+            f"answer failed validation after {max_retries + 1} attempts:\n{errors}"
+        )
+
+    def _request(
+        self,
+        tools: list[Callable[..., str]] | None,
+        round_number: int | None,
+        format: dict | None = None,
+    ) -> Reply:
         """
         Send the conversation to the model, stream its reply to the observer,
         and save the reply (with its thinking and tool calls) to the history.
@@ -161,13 +245,19 @@ class Agent:
         Args:
             tools: Tool functions to offer, or None to offer none.
             round_number: Round number to report to the observer, or None.
+            format: JSON schema the reply must match, or None for free text.
 
         Returns:
             The complete reply.
         """
         self.observer.reply_started(round_number)
         stream = self.client.chat(
-            model=self.model, messages=self.messages, stream=True, think=self.think, tools=tools
+            model=self.model,
+            messages=self.messages,
+            stream=True,
+            think=self.think,
+            tools=tools,
+            format=format,
         )
 
         reply = Reply()
@@ -223,3 +313,38 @@ class Agent:
                 result = run_tool(name, arguments)
             self.observer.tool_called(name, arguments, result)
             self.messages.append({"role": "tool", "tool_name": name, "content": result})
+
+
+def _strip_code_fence(text: str) -> str:
+    """
+    Return the text without a surrounding Markdown code fence, if it has one.
+    Without `format`, models often wrap JSON in ```json ... ```.
+
+    Args:
+        text: The model's reply.
+
+    Returns:
+        The text inside the fence, or the whole text if there's no fence.
+    """
+    text = text.strip()
+    if text.startswith("```") and text.endswith("```"):
+        text = text.removeprefix("```json").removeprefix("```").removesuffix("```")
+    return text.strip()
+
+
+def _format_errors(error: ValidationError) -> str:
+    """
+    Turn a pydantic ValidationError into one line per problem, for the model. Eg:
+    - score: Input should be less than or equal to 1
+
+    Args:
+        error: The validation error.
+
+    Returns:
+        The problems, one per line.
+    """
+    lines = []
+    for problem in error.errors(include_url=False):
+        location = ".".join(str(part) for part in problem["loc"]) or "(whole reply)"
+        lines.append(f"- {location}: {problem['msg']}")
+    return "\n".join(lines)
